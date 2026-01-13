@@ -2,4 +2,6 @@
 
 Takes latest articles from tagesschau.de and turns them into images made of text displaying a satire character connected to people mentioned in the article.
 
-<img width="1000" height="651" alt="donald" src="https://github.com/user-attachments/assets/91062bd4-d97b-4a41-88ed-f748ce4481eb" />
+<img width="1139" height="651" alt="donald" src="https://github.com/user-attachments/assets/8fdbe185-9092-4e25-9f0f-4bcd4d2a2578" />
+
+
