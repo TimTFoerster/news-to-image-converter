@@ -1,8 +1,7 @@
 import time
 import feedparser
 from bs4 import BeautifulSoup
-import re
-from PIL import Image, ImageOps
+from PIL import Image
 
 print("Loading news feed...")
 
