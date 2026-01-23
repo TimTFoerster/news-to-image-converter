@@ -76,27 +76,23 @@ console_colors_codes = {
 }
 
 news_characters_comic = {
-    "trump ": "donald1.webp",
-    "merz ": "burns3.webp",
-    "deutsch ": "burns3.webp",
-    "deutsche ": "burns3.webp",
-    "deutschen ": "burns3.webp",
-    "deutschland ": "burns3.webp",
-    "usa ": "Homer.jpg",
-    "us ": "Homer.jpg",
-    "afd ": "afd-schnitzel.jpg"
+    "Trump": "donald1.webp",
+    "Merz": "burns2.jpg",
+    "deutsch": "sandalen.jpeg",
+    "Deutschland": "merkel-hand.jpeg",
+    "USA": "Homer.jpg",
+    "US": "Homer.jpg",
+    "AfD": "bafv.jpg"
 }
 
 news_characters = {
-    "trump ": "trump.webp",
-    "merz ": "merz.jpg",
-    "deutsch ": "merz.jpg",
-    "deutsche ": "merz.jpg",
-    "deutschen ": "merz.jpg",
-    "deutschland ": "merz.jpg",
-    "usa ": "trump3.webp",
-    "us ": "trump3.webp",
-    "afd ": "aliceweidel.webp"
+    "Trump ": "trump.webp",
+    "Merz ": "merz.jpg",
+    "deutsch": "deutschland.jpg",
+    "Deutschland": "merkel.webp",
+    "USA": "trump3.webp",
+    "US": "trump3.webp",
+    "AfD": "afd.jpg"
 }
 
 # styles
@@ -155,6 +151,8 @@ def get_recolored_image(img:Image, color_palette:list[tuple[int]]) -> Image:
     for y in range(height):
         for x in range(width):
             source_color = pixels[x, y] # read image colors
+            if type(source_color) != tuple:
+                continue
             closest_color = get_closest_color_from_palette(source_color, color_palette) # convert to console color palette
             pixels[x, y] = closest_color # write
     return img
@@ -221,21 +219,18 @@ def select_correct_image_from_text(description:str, headline:str, characters:dic
     image_file = None
     tags = list(characters.keys())
     for tag in tags:
-        if tag in headline.lower():
-            image_file = characters[tag]
-        elif tag.removesuffix(" ") + "." in headline.lower():
+        if tag in headline:
             image_file = characters[tag]
         if not image_file:
-            if tag in description.lower():
-                image_file = characters[tag]
-            elif tag.removesuffix(" ") + "." in description.lower():
+            if tag in description:
                 image_file = characters[tag]
     return image_file
 
 # recolored_image.save("Homer_console.jpg")
 image_file = None
 while not image_file:
-    for entry in range(len(tagesschau.entries)):
+    # for entry in range(len(tagesschau.entries)):
+    for entry in tagesschau.entries:
         entry_no = entry
         text = get_news_text_from_feed(tagesschau, entry_no)
         description = get_news_description_from_rss(tagesschau, entry_no)
