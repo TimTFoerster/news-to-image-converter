@@ -1,4 +1,5 @@
 import time
+import os
 import feedparser
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -6,23 +7,14 @@ from PIL import Image
 DELAY = 0.5
 DELAY_LONG = 1.5
 
+# x = os.get_terminal_size().lines
+terminal_width = os.get_terminal_size().columns
+
 print("Loading news feed...")
 
 tagesschau = feedparser.parse("https://morss.it/https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml")
 bbc = feedparser.parse("https://morss.it/https://feeds.bbci.co.uk/news/world/rss.xml")
 news_feed = tagesschau
-
-
-# news_title = news_feed.entries[0].title
-# news_description = news_feed.entries[0].description
-# news_content = news_feed.entries[0].content[0]
-# soup = BeautifulSoup(str(news_content), "html.parser")
-# news_paragraphs = soup.find_all("p")
-# news_content_from_paragraphs = ""
-# for p in news_paragraphs:
-#     news_content_from_paragraphs += p.get_text() # nur Text aus <p> auslesen
-
-# news_content_stripped = news_content_from_paragraphs.strip("\n                       ") # komische Absätze entfernen
 
 def get_news_text_from_feed(feed:feedparser.FeedParserDict, entry_no:int) -> str:
     news_content = feed.entries[entry_no].content[0]
@@ -31,7 +23,6 @@ def get_news_text_from_feed(feed:feedparser.FeedParserDict, entry_no:int) -> str
     news_content_from_paragraphs = ""
     for p in news_paragraphs:
         news_content_from_paragraphs += p.get_text() # nur Text aus <p> auslesen
-
     news_content_stripped = news_content_from_paragraphs.strip("\n                       ") # komische Absätze entfernen
 
     return news_content_stripped
@@ -72,17 +63,6 @@ console_colors_rgb = {
     "cyan": (17, 168, 205),
     "white": (229, 229, 229)
 }
-
-# console_colors_codes = {
-#     "gray": 30,
-#     "red": 31,
-#     "green": 32,
-#     "yellow": 33,
-#     "blue": 34,
-#     "magenta": 35,
-#     "cyan": 36,
-#     "white": 37
-# }
 
 console_colors_codes = {
     30: "gray",
@@ -266,7 +246,7 @@ while not image_file:
             continue
 
         image = Image.open("assets/" + image_file)
-        resized_image = get_resized_image_abs(image, 300)
+        resized_image = get_resized_image_abs(image, terminal_width) # 300
         recolored_image = get_recolored_image(resized_image, console_colors)
 
         print(f"\033[{BOLD};{YELLOW}m{headline}\033[0m") # Überschrift
@@ -276,7 +256,7 @@ while not image_file:
         print_text_from_image(recolored_image, 100*text)
         image_file = select_correct_image_from_text(description, headline, news_characters_comic) # comic Bild
         image = Image.open("assets/" + image_file)
-        resized_image = get_resized_image_abs(image, 300)
+        resized_image = get_resized_image_abs(image, terminal_width)
         recolored_image = get_recolored_image(resized_image, console_colors)
         time.sleep(DELAY)
         print("...")
