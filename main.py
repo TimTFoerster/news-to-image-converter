@@ -10,11 +10,40 @@ DELAY_LONG = 1.5
 # x = os.get_terminal_size().lines
 terminal_width = os.get_terminal_size().columns
 
-print("Loading news feed...")
+# print("Loading news feed...")
 
-tagesschau = feedparser.parse("https://morss.it/https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml")
-bbc = feedparser.parse("https://morss.it/https://feeds.bbci.co.uk/news/world/rss.xml")
-news_feed = tagesschau
+TAGESSCHAU = "https://morss.it/https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml"
+BBC = "https://morss.it/https://feeds.bbci.co.uk/news/world/rss.xml"
+# news_feed = TAGESSCHAU
+
+def get_articles(source:str):
+    print("Loading news feed...")
+    feed = feedparser.parse(source)
+    articles = []
+
+    for entry in feed.entries:
+        title = entry.title
+        description = entry.description
+        text = str(entry.content[0])
+        text_stripped = extract_text_from_feed(text)
+
+        articles.append({
+            "title": title,
+            "description": description,
+            "text": text_stripped
+        })
+
+    return articles
+
+def extract_text_from_feed(text:str) -> str:
+    soup = BeautifulSoup(text, "html.parser")
+    news_paragraphs = soup.find_all("p")
+    news_content_from_paragraphs = ""
+    for p in news_paragraphs:
+        news_content_from_paragraphs += p.get_text() # nur Text aus <p> auslesen
+    news_content_stripped = news_content_from_paragraphs.strip("\n                       ") # komische Absätze entfernen
+
+    return news_content_stripped
 
 def get_news_text_from_feed(feed:feedparser.FeedParserDict, entry_no:int) -> str:
     news_content = feed.entries[entry_no].content[0]
@@ -230,11 +259,17 @@ def select_correct_image_from_text(description:str, headline:str, characters:dic
 image_file = None
 while not image_file:
     # for entry in range(len(tagesschau.entries)):
-    for entry in tagesschau.entries:
-        entry_no = entry
-        text = get_news_text_from_feed(tagesschau, entry_no)
-        description = get_news_description_from_rss(tagesschau, entry_no)
-        headline = get_news_headline_from_rss(tagesschau, entry_no)
+    # for entry in tagesschau.entries:
+    #     entry_no = entry
+    #     text = get_news_text_from_feed(tagesschau, entry_no)
+    #     description = get_news_description_from_rss(tagesschau, entry_no)
+    #     headline = get_news_headline_from_rss(tagesschau, entry_no)
+
+    news_articles = get_articles(TAGESSCHAU)
+    for news_article in news_articles:
+        headline = news_article["title"]
+        description = news_article["description"]
+        text = news_article["text"]
 
         image_file = select_correct_image_from_text(description, headline, news_characters) # passendes bild
         if not image_file:
