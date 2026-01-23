@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Colored News</title>
+
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            padding: 1rem;
+            font-size: 8pt;
+        }
+
+        .headline {
+            color: rgb(229,229,16); /* Yellow */
+            font-weight: bold;
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            color: rgb(135,135,135); /* Gray */
+            margin-bottom: 1rem;
+        }
+
+        .ascii {
+            white-space: pre-wrap;
+            line-height: 1;
+            font-size: 8px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="headline" id="title">Loading news...</h1>
+<div class="description" id="desc"></div>
+<div class="ascii" id="ascii"></div>
+
+<script>
+let idx = 0;
+
+async function loadNews() {
+    try {
+        const response = await fetch(`/api/news/${idx}`);
+        if (!response.ok) throw new Error("Network response was not OK");
+
+        const data = await response.json();
+
+        document.getElementById("title").textContent = data.title;
+        document.getElementById("desc").textContent = data.description;
+        document.getElementById("ascii").innerHTML = data.html;
+
+        idx++;
+    } catch (e) {
+        console.error("Error loading news:", e);
+        document.getElementById("title").textContent = "Error loading news";
+        document.getElementById("desc").textContent = "";
+        document.getElementById("ascii").textContent = "";
+        document.getElementById("ascii").classList.add("error");
+    }
+}
+
+// Load first article immediately
+loadNews();
+
+// Load a new article every 10 seconds
+setInterval(loadNews, 10000);
+</script>
+
+</body>
+</html>

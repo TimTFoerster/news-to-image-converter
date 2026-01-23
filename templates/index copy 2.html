@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Colored News - Typewriter</title>
+
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            padding: 1rem;
+        }
+
+        .headline {
+            color: rgb(229,229,16);
+            font-weight: bold;
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            color: rgb(135,135,135);
+            margin-bottom: 1rem;
+        }
+
+        .ascii {
+            white-space: pre-wrap;
+            line-height: 1;
+            font-size: 8px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="headline" id="title">Loading news...</h1>
+<div class="description" id="desc"></div>
+<div class="ascii" id="ascii"></div>
+
+<script>
+let ongoingTypewriters = [];
+
+function clearTypewriters() {
+    // cancel any pending timeouts
+    for (let t of ongoingTypewriters) {
+        clearTimeout(t);
+    }
+    ongoingTypewriters = [];
+}
+
+let idx = 0;
+
+// Typewriter effect
+async function typeWriter(containerId, htmlText, delay = 2) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = ""; // clear previous content
+    let i = 0;
+
+    function typeNext() {
+        if (i < htmlText.length) {
+            container.innerHTML += htmlText[i];
+            i++;
+            setTimeout(typeNext, delay); // delay in ms
+        }
+    }
+
+    typeNext();
+}
+
+async function typeWriterHTML(containerId, htmlText, delay = 2) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = ""; // clear previous content
+
+    const temp = document.createElement("div");
+    temp.innerHTML = htmlText;
+
+    function typeNode(node, parent, callback) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            // type text node character by character
+            let text = node.textContent;
+            let i = 0;
+            function typeChar() {
+                if (i < text.length) {
+                    parent.append(text[i]);
+                    i++;
+                    let timeoutId = setTimeout(typeChar, delay);
+                    ongoingTypewriters.push(timeoutId);
+                } else {
+                    callback();
+                }
+            }
+            typeChar();
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            // clone element, then type children inside
+            const el = document.createElement(node.tagName);
+            // copy attributes
+            for (let attr of node.attributes) {
+                el.setAttribute(attr.name, attr.value);
+            }
+            parent.appendChild(el);
+
+            let children = Array.from(node.childNodes);
+            let idx = 0;
+            function nextChild() {
+                if (idx < children.length) {
+                    typeNode(children[idx], el, () => {
+                        idx++;
+                        nextChild();
+                    });
+                } else {
+                    callback();
+                }
+            }
+            nextChild();
+        } else {
+            // ignore other node types
+            callback();
+        }
+    }
+
+    let nodes = Array.from(temp.childNodes);
+    let idx = 0;
+    function nextNode() {
+        if (idx < nodes.length) {
+            typeNode(nodes[idx], container, () => {
+                idx++;
+                nextNode();
+            });
+        }
+    }
+
+    nextNode();
+}
+
+
+async function loadNews() {
+    try {
+        clearTypewriters();  // stop previous typing
+
+        const response = await fetch(`/api/news/${idx}`);
+        if (!response.ok) throw new Error("Network response was not OK");
+
+        const data = await response.json();
+
+        document.getElementById("title").innerHTML = "";
+        document.getElementById("desc").innerHTML = "";
+        document.getElementById("ascii").innerHTML = "";
+
+        typeWriterHTML("title", `<span style="color: rgb(229,229,16); font-weight:bold;">${data.title}</span>`, 50);
+        typeWriterHTML("desc", `<span style="color: rgb(135,135,135);">${data.description}</span>`, 20);
+        typeWriterHTML("ascii", data.html, 1);
+
+        idx++;
+    } catch (e) {
+        console.error("Error loading news:", e);
+        document.getElementById("title").textContent = "Error loading news";
+        document.getElementById("desc").textContent = "";
+        document.getElementById("ascii").textContent = "";
+        document.getElementById("ascii").classList.add("error");
+    }
+}
+
+
+// Load first article immediately
+loadNews();
+
+// Load a new article every 45 seconds
+setInterval(loadNews, 45000);
+</script>
+
+</body>
+</html>
