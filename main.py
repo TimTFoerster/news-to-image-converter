@@ -3,6 +3,9 @@ import feedparser
 from bs4 import BeautifulSoup
 from PIL import Image
 
+DELAY = 0.5
+DELAY_LONG = 1.5
+
 print("Loading news feed...")
 
 tagesschau = feedparser.parse("https://morss.it/https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml")
@@ -92,11 +95,28 @@ console_colors_codes = {
     37: "white"
 }
 
-news_characters = {
+news_characters_comic = {
     "trump ": "donald1.webp",
     "merz ": "burns3.webp",
+    "deutsch ": "burns3.webp",
+    "deutsche ": "burns3.webp",
+    "deutschen ": "burns3.webp",
+    "deutschland ": "burns3.webp",
     "usa ": "Homer.jpg",
+    "us ": "Homer.jpg",
     "afd ": "afd-schnitzel.jpg"
+}
+
+news_characters = {
+    "trump ": "trump.webp",
+    "merz ": "merz.jpg",
+    "deutsch ": "merz.jpg",
+    "deutsche ": "merz.jpg",
+    "deutschen ": "merz.jpg",
+    "deutschland ": "merz.jpg",
+    "usa ": "trump3.webp",
+    "us ": "trump3.webp",
+    "afd ": "aliceweidel.webp"
 }
 
 # styles
@@ -183,11 +203,19 @@ def get_key_from_value(value, dictionary:dict) -> str:
     key_idx = values.index(value)
     return keys[key_idx]
 
+def duplicate_text_for_image(width:int, height:int, text:str) -> str:
+    chars_needed = width * height
+    output_text = text
+    while len(output_text) < chars_needed:
+        output_text += text
+    return output_text
+
 def print_text_from_image(image:Image, text:str) -> None:
     pixels = image.load()
     width, height = image.size
 
     text_cleaned = text.strip("\n")
+    text_long_enough = duplicate_text_for_image(width, height, text_cleaned)
 
     output_lines = []
     text_counter = 0
@@ -197,15 +225,33 @@ def print_text_from_image(image:Image, text:str) -> None:
             source_color = pixels[x, y]
             color_name = get_key_from_value(source_color, console_colors_rgb)
             color_code = get_key_from_value(color_name, console_colors_codes)
-            output_text += f"\033[{RESET};{color_code}m{text_cleaned[text_counter]}\033[0m"
+            output_text += f"\033[{RESET};{color_code}m{text_long_enough[text_counter]}\033[0m"
 
             text_counter += 1
         output_lines.append(output_text)
 
     for line in output_lines:
+        # for character in line:
+        #     print(character, end="")
+        #     time.sleep(0.01)
         print(line) # Artikel
         time.sleep(0.05)
-        
+
+def select_correct_image_from_text(description:str, headline:str, characters:dict) -> str:
+    image_file = None
+    tags = list(characters.keys())
+    for tag in tags:
+        if tag in headline.lower():
+            image_file = characters[tag]
+        elif tag.removesuffix(" ") + "." in headline.lower():
+            image_file = characters[tag]
+        if not image_file:
+            if tag in description.lower():
+                image_file = characters[tag]
+            elif tag.removesuffix(" ") + "." in description.lower():
+                image_file = characters[tag]
+    return image_file
+
 # recolored_image.save("Homer_console.jpg")
 image_file = None
 while not image_file:
@@ -215,35 +261,32 @@ while not image_file:
         description = get_news_description_from_rss(tagesschau, entry_no)
         headline = get_news_headline_from_rss(tagesschau, entry_no)
 
-        tags = list(news_characters.keys())
-        for tag in tags:
-            if tag in headline.lower():
-                image_file = news_characters[tag]
-            elif tag.removesuffix(" ") + "." in headline.lower():
-                image_file = news_characters[tag]
-            if not image_file:
-                if tag in description.lower():
-                    image_file = news_characters[tag]
-                elif tag.removesuffix(" ") + "." in description.lower():
-                    image_file = news_characters[tag]
+        image_file = select_correct_image_from_text(description, headline, news_characters) # passendes bild
         if not image_file:
             continue
 
         image = Image.open("assets/" + image_file)
-        resized_image = get_resized_image_abs(image, 250)
+        resized_image = get_resized_image_abs(image, 300)
         recolored_image = get_recolored_image(resized_image, console_colors)
 
         print(f"\033[{BOLD};{YELLOW}m{headline}\033[0m") # Überschrift
-        time.sleep(2)
+        time.sleep(DELAY)
         print(f"\033[{RESET};{YELLOW}m{description}\033[0m") # Beschreibung
-        time.sleep(2)
+        time.sleep(DELAY_LONG)
         print_text_from_image(recolored_image, 100*text)
-        time.sleep(2)
+        image_file = select_correct_image_from_text(description, headline, news_characters_comic) # comic Bild
+        image = Image.open("assets/" + image_file)
+        resized_image = get_resized_image_abs(image, 300)
+        recolored_image = get_recolored_image(resized_image, console_colors)
+        time.sleep(DELAY)
         print("...")
-        time.sleep(2)
+        print_text_from_image(recolored_image, 100*text)
+        time.sleep(DELAY)
+        print("...")
+        time.sleep(DELAY)
         print("loading new article...")
-        time.sleep(2)
+        time.sleep(DELAY)
         print("...")
-        time.sleep(2)
+        time.sleep(DELAY)
 
         image_file = None
