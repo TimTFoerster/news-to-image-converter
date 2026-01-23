@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Terminal News</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            padding: 1rem;
+        }
+
+        .headline { font-weight: bold; font-size: 1.4rem; margin-bottom: 0.5rem; }
+        .description { margin-bottom: 1rem; }
+        .ascii { white-space: pre; line-height: 1; font-size: 8px; }
+        .error { color: red; font-weight: bold; }
+        .cursor { display:inline-block; width:8px; background:white; animation: blink 1s infinite; margin-left:2px; }
+        @keyframes blink { 0%,50%,100% {opacity:1;} 25%,75% {opacity:0;} }
+    </style>
+</head>
+<body>
+
+<h1 class="headline" id="title">Loading news<span class="cursor"></span></h1>
+<div class="description" id="desc"></div>
+<div class="ascii" id="ascii"></div>
+
+<script>
+let idx = 0;
+
+// Typewriter for colored text (headline / description)
+function typeWriterColored(containerId, text, color, delay=50) {
+    return new Promise(resolve => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        let i = 0;
+
+        function nextChar() {
+            if (i < text.length) {
+                const span = document.createElement("span");
+                span.textContent = text[i];
+                span.style.color = color;
+                container.appendChild(span);
+                i++;
+                setTimeout(nextChar, delay);
+            } else {
+                resolve();
+            }
+        }
+        nextChar();
+    });
+}
+
+// Typewriter for ASCII images (line by line)
+function typeWriterLines(containerId, textLines, lineDelay=20) {
+    return new Promise(resolve => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        let lineIndex = 0;
+
+        function typeLine() {
+            if (lineIndex < textLines.length) {
+                container.innerHTML += textLines[lineIndex] + "\n";
+                lineIndex++;
+                setTimeout(typeLine, lineDelay);
+            } else {
+                resolve();
+            }
+        }
+
+        typeLine();
+    });
+}
+
+// Display one article sequentially
+async function displayArticle(article) {
+    await typeWriterColored("title", article.title, "rgb(229,229,16)", 50);
+    await typeWriterColored("desc", article.description, "rgb(135,135,135)", 20);
+    const asciiLines = article.html.split("\n");
+    await typeWriterLines("ascii", asciiLines, 20);
+}
+
+// Load next article
+async function loadNews() {
+    try {
+        const response = await fetch(`/api/news/${idx}`);
+        if (!response.ok) throw new Error("Network response was not OK");
+
+        const article = await response.json();
+        await displayArticle(article);
+
+        // Wait 5s, then next article
+        setTimeout(() => {
+            idx++;
+            loadNews();
+        }, 5000);
+
+    } catch (e) {
+        console.error("Error loading news:", e);
+        document.getElementById("title").textContent = "Error loading news";
+        document.getElementById("desc").textContent = "";
+        document.getElementById("ascii").textContent = "";
+        document.getElementById("ascii").classList.add("error");
+    }
+}
+
+// Start
+loadNews();
+</script>
+
+</body>
+</html>

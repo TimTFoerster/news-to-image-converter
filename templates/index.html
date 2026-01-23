@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Terminal News</title>
+
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            padding: 1rem;
+        }
+
+        .headline {
+            color: rgb(229,229,16);
+            font-weight: bold;
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            color: rgb(135,135,135);
+            margin-bottom: 1rem;
+        }
+
+        .ascii {
+            white-space: pre-wrap;
+            line-height: 1;
+            font-size: 8px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1 class="headline" id="title">Loading news...</h1>
+<div class="description" id="desc"></div>
+<div class="ascii" id="ascii"></div>
+
+<script>
+let idx = 0;
+let ongoingTypewriters = [];
+
+// Stop all ongoing typewriters
+function clearTypewriters() {
+    for (let t of ongoingTypewriters) {
+        clearTimeout(t);
+    }
+    ongoingTypewriters = [];
+}
+
+// Typewriter function for text nodes and HTML elements
+function typeWriterHTML(containerId, htmlText, delay = 2) {
+    return new Promise(resolve => {
+        clearTypewriters();
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+
+        const temp = document.createElement("div");
+        temp.innerHTML = htmlText;
+
+        function typeNode(node, parent, callback) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                let text = node.textContent;
+                let i = 0;
+                function typeChar() {
+                    if (i < text.length) {
+                        parent.append(text[i]);
+                        i++;
+                        ongoingTypewriters.push(setTimeout(typeChar, delay));
+                    } else {
+                        callback();
+                    }
+                }
+                typeChar();
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                const el = document.createElement(node.tagName);
+                for (let attr of node.attributes) {
+                    el.setAttribute(attr.name, attr.value);
+                }
+                parent.appendChild(el);
+
+                let children = Array.from(node.childNodes);
+                let idx = 0;
+                function nextChild() {
+                    if (idx < children.length) {
+                        typeNode(children[idx], el, () => {
+                            idx++;
+                            nextChild();
+                        });
+                    } else {
+                        callback();
+                    }
+                }
+                nextChild();
+            } else {
+                callback();
+            }
+        }
+
+        let nodes = Array.from(temp.childNodes);
+        let nodeIdx = 0;
+        function nextNode() {
+            if (nodeIdx < nodes.length) {
+                typeNode(nodes[nodeIdx], container, () => {
+                    nodeIdx++;
+                    nextNode();
+                });
+            } else {
+                resolve(); // done typing
+            }
+        }
+
+        nextNode();
+    });
+}
+
+// Sequentially display headline → description → ASCII → wait → next article
+async function displayArticle(article) {
+    // headline
+    await typeWriterHTML("title", `<span style="color: rgb(229,229,16); font-weight:bold;">${article.title}</span>`, 20);
+    // description
+    await typeWriterHTML("desc", `<span style="color: rgb(135,135,135);">${article.description}</span>`, 10);
+    // ASCII / colored image text
+    await typeWriterHTML("ascii", article.html, 1);
+}
+
+// Fetch article JSON
+async function loadNews() {
+    try {
+        const response = await fetch(`/api/news/${idx}`);
+        if (!response.ok) throw new Error("Network response was not OK");
+
+        const data = await response.json();
+        await displayArticle(data);
+
+        // Wait 5 seconds before next article
+        setTimeout(() => {
+            idx++;
+            loadNews(); // recursive call to next article
+        }, 5000);
+
+    } catch (e) {
+        console.error("Error loading news:", e);
+        document.getElementById("title").textContent = "Error loading news";
+        document.getElementById("desc").textContent = "";
+        document.getElementById("ascii").textContent = "";
+        document.getElementById("ascii").classList.add("error");
+    }
+}
+
+// Start
+loadNews();
+</script>
+
+</body>
+</html>
