@@ -4,17 +4,110 @@ import feedparser
 from bs4 import BeautifulSoup
 from PIL import Image
 
+# Constants
 DELAY = 0.5
 DELAY_LONG = 1.5
+DELAY_LINE = 0.05
+
+NORMAL_IMAGE = 0
+SATIRE_IMAGE = 1
+
+# colors
+GRAY    = 30
+RED     = 31
+GREEN   = 32
+YELLOW  = 33
+BLUE    = 34
+MAGENTA = 35
+CYAN    = 36
+WHITE   = 37
+
+# colors in RGB
+RGB_GRAY    = (135, 135, 135)
+RGB_RED     = (215, 89, 89)
+RGB_GREEN   = (13, 188, 121)
+RGB_YELLOW  = (229, 229, 16)
+RGB_BLUE    = (78, 142, 211)
+RGB_MAGENTA = (195, 83, 195)
+RGB_CYAN    = (17, 168, 205)
+RGB_WHITE   = (229, 229, 229)
+
+# styles
+RESET   = 0
+BOLD    = 1
+UNDERLINE = 4
+BLINK   = 5
+REVERSE = 7
+
+# Links
+TAGESSCHAU = "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml"
+TAGESSCHAU_MORSS = "https://morss.it/https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml"
+BBC = "https://morss.it/https://feeds.bbci.co.uk/news/world/rss.xml"
+
+console_colors_rgb = {
+    "gray": RGB_GRAY,
+    "red": RGB_RED,
+    "green": RGB_GREEN,
+    "yellow": RGB_YELLOW,
+    "blue": RGB_BLUE,
+    "magenta": RGB_MAGENTA,
+    "cyan": RGB_CYAN,
+    "white": RGB_WHITE
+}
+
+console_colors_codes = {
+    GRAY: "gray",
+    RED: "red", 
+    GREEN: "green",
+    YELLOW: "yellow",
+    BLUE: "blue",
+    MAGENTA: "magenta",
+    CYAN: "cyan",
+    WHITE: "white"
+}
+
+news_characters_comic = {
+    "Trump": "donald1.webp",
+    "Merz": "burns2.jpg",
+    "deutsch": "sandalen.jpeg",
+    "Deutschland": "merkel-hand.jpeg",
+    "USA": "Homer.jpg",
+    "US": "Homer.jpg",
+    "AfD": "bafv.jpg"
+}
+
+news_characters = {
+    "Trump": "trump.webp",
+    "Merz": "merz.jpg",
+    "deutsch": "deutschland.jpg",
+    "Deutschland": "merkel.webp",
+    "USA": "trump3.webp",
+    "US": "trump3.webp",
+    "AfD": "afd.jpg"
+}
+
+news_keywords = {
+    "Deutschland": ["Deutschland", "deutsch", "deutsche", "deutschen", "deutscher", "Deutsche", "Deutschen", "Deutscher", "Deutsch"],
+    "Merz": ["Merz", "Bundeskanzler"],
+    "USA": ["USA", "US", "Amerikaner"],
+    "Trump": ["Trump", "US-Präsident"],
+    "AfD": ["AfD"],
+    "Weidel": ["Weidel"], 
+    "CSU": ["Söder", "CSU", "Bayern", "Bayerisch", "Bayerische", "Bayerischer", "bayerisch", "bayerische", "bayerischer"]
+}
+
+news_images = {
+    "Trump": ["trump.webp", "donald1.webp"],
+    "Merz": ["merz.jpg", "burns2.jpg"],
+    "Deutschland": ["merkel.webp", "merkel-hand.jpeg"],
+    "USA": ["trump3.webp", "Homer.jpg"],
+    "AfD": ["afd.jpg", "darth.jpg"],
+    "Weidel": ["Aliceweidel.webp", "Aliceweidel.webp"], # 2. Bild suchen
+    "CSU": ["maggus.jpg", "maggus-essen2.jpg"]
+}
 
 # x = os.get_terminal_size().lines
 terminal_width = os.get_terminal_size().columns
-
-# print("Loading news feed...")
-
-TAGESSCHAU = "https://morss.it/https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml"
-BBC = "https://morss.it/https://feeds.bbci.co.uk/news/world/rss.xml"
-# news_feed = TAGESSCHAU
 
 def get_articles(source:str):
     print("Loading news feed...")
@@ -44,93 +137,6 @@ def extract_text_from_feed(text:str) -> str:
     news_content_stripped = news_content_from_paragraphs.strip("\n                       ") # komische Absätze entfernen
 
     return news_content_stripped
-
-def get_news_text_from_feed(feed:feedparser.FeedParserDict, entry_no:int) -> str:
-    news_content = feed.entries[entry_no].content[0]
-    soup = BeautifulSoup(str(news_content), "html.parser")
-    news_paragraphs = soup.find_all("p")
-    news_content_from_paragraphs = ""
-    for p in news_paragraphs:
-        news_content_from_paragraphs += p.get_text() # nur Text aus <p> auslesen
-    news_content_stripped = news_content_from_paragraphs.strip("\n                       ") # komische Absätze entfernen
-
-    return news_content_stripped
-
-def get_news_headline_from_rss(feed:feedparser.FeedParserDict, entry_no:int) -> str:
-    return feed.entries[entry_no].title
-
-def get_news_description_from_rss(feed:feedparser.FeedParserDict, entry_no:int) -> str:
-    return feed.entries[entry_no].description
-
-# colors
-GRAY    = 30
-RED     = 31
-GREEN   = 32
-YELLOW  = 33
-BLUE    = 34
-MAGENTA = 35
-CYAN    = 36
-WHITE   = 37
-
-# colors in RGB
-RGB_GRAY    = (135, 135, 135)
-RGB_RED     = (215, 89, 89)
-RGB_GREEN   = (13, 188, 121)
-RGB_YELLOW  = (229, 229, 16)
-RGB_BLUE    = (78, 142, 211)
-RGB_MAGENTA = (195, 83, 195)
-RGB_CYAN    = (17, 168, 205)
-RGB_WHITE   = (229, 229, 229)
-
-console_colors_rgb = {
-    "gray": (135, 135, 135),
-    "red": (215, 89, 89),
-    "green": (13, 188, 121),
-    "yellow": (229, 229, 16),
-    "blue": (78, 142, 211),
-    "magenta": (195, 83, 195),
-    "cyan": (17, 168, 205),
-    "white": (229, 229, 229)
-}
-
-console_colors_codes = {
-    30: "gray",
-    31: "red", 
-    32: "green",
-    33: "yellow",
-    34: "blue",
-    35: "magenta",
-    36: "cyan",
-    37: "white"
-}
-
-news_characters_comic = {
-    "Trump": "donald1.webp",
-    "Merz": "burns2.jpg",
-    "deutsch": "sandalen.jpeg",
-    "Deutschland": "merkel-hand.jpeg",
-    "USA": "Homer.jpg",
-    "US": "Homer.jpg",
-    "AfD": "bafv.jpg"
-}
-
-news_characters = {
-    "Trump ": "trump.webp",
-    "Merz ": "merz.jpg",
-    "deutsch": "deutschland.jpg",
-    "Deutschland": "merkel.webp",
-    "USA": "trump3.webp",
-    "US": "trump3.webp",
-    "AfD": "afd.jpg"
-}
-
-# styles
-RESET   = 0
-BOLD    = 1
-UNDERLINE = 4
-BLINK   = 5
-REVERSE = 7
-
 
 color_codes = [num for num in range(30, 38)]
 style_codes = [0, 1, 4, 7]
@@ -242,28 +248,23 @@ def print_text_from_image(image:Image, text:str) -> None:
         #     print(character, end="")
         #     time.sleep(0.01)
         print(line) # Artikel
-        time.sleep(0.05)
+        time.sleep(DELAY_LINE)
 
-def select_correct_image_from_text(description:str, headline:str, characters:dict) -> str:
-    image_file = None
-    tags = list(characters.keys())
-    for tag in tags:
-        if tag in headline:
-            image_file = characters[tag]
-        if not image_file:
-            if tag in description:
-                image_file = characters[tag]
-    return image_file
+def get_image_category_from_text(description:str, headline:str, keywords_dict:dict) -> str:
+    image_category = None
 
-# recolored_image.save("Homer_console.jpg")
+    for key, keyword_list in keywords_dict.items():
+        for keyword in keyword_list:
+            if keyword in headline:
+                image_category = key
+            elif keyword in description:
+                image_category = key
+
+    return image_category
+
+
 image_file = None
 while not image_file:
-    # for entry in range(len(tagesschau.entries)):
-    # for entry in tagesschau.entries:
-    #     entry_no = entry
-    #     text = get_news_text_from_feed(tagesschau, entry_no)
-    #     description = get_news_description_from_rss(tagesschau, entry_no)
-    #     headline = get_news_headline_from_rss(tagesschau, entry_no)
 
     news_articles = get_articles(TAGESSCHAU)
     for news_article in news_articles:
@@ -271,20 +272,23 @@ while not image_file:
         description = news_article["description"]
         text = news_article["text"]
 
-        image_file = select_correct_image_from_text(description, headline, news_characters) # passendes bild
-        if not image_file:
+        image_category = get_image_category_from_text(description, headline, news_keywords)
+        if not image_category:
             continue
+        image_file = news_images[image_category][NORMAL_IMAGE]
 
         image = Image.open("assets/" + image_file)
         resized_image = get_resized_image_abs(image, terminal_width) # 300
         recolored_image = get_recolored_image(resized_image, console_colors)
+        # recolored_image.save("Homer_console.jpg")
 
         print(f"\033[{BOLD};{YELLOW}m{headline}\033[0m") # Überschrift
         time.sleep(DELAY)
         print(f"\033[{RESET};{YELLOW}m{description}\033[0m") # Beschreibung
         time.sleep(DELAY_LONG)
         print_text_from_image(recolored_image, 100*text)
-        image_file = select_correct_image_from_text(description, headline, news_characters_comic) # comic Bild
+        image_category = get_image_category_from_text(description, headline, news_keywords)
+        image_file = news_images[image_category][SATIRE_IMAGE]
         image = Image.open("assets/" + image_file)
         resized_image = get_resized_image_abs(image, terminal_width)
         recolored_image = get_recolored_image(resized_image, console_colors)
