@@ -25,7 +25,7 @@ UNDERLINE = 4
 BLINK   = 5
 REVERSE = 7
 
-console_colors_rgb = {
+CONSOLE_COLORS_RGB = {
     "gray": RGB_GRAY,
     "red": RGB_RED,
     "green": RGB_GREEN,
@@ -36,7 +36,7 @@ console_colors_rgb = {
     "white": RGB_WHITE
 }
 
-console_colors_codes = {
+CONSOLE_COLORS_CODES = {
     GRAY: "gray",
     RED: "red", 
     GREEN: "green",
@@ -47,7 +47,7 @@ console_colors_codes = {
     WHITE: "white"
 }
 
-console_colors = [RGB_GRAY,
+CONSOLE_COLORS = [RGB_GRAY,
               RGB_RED,
               RGB_GREEN,
               RGB_YELLOW,

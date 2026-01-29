@@ -16,7 +16,7 @@ SATIRE_IMAGE = 1
 
 # Links
 TAGESSCHAU = "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml"
-TAGESSCHAU_MORSS = "https://morss.it/https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml"
+TAGESSCHAU_DETAIL = "https://morss.it/https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml"
 BBC = "https://morss.it/https://feeds.bbci.co.uk/news/world/rss.xml"
 
 # x = os.get_terminal_size().lines
@@ -120,8 +120,8 @@ def print_text_from_image(image:Image, text:str) -> None:
         output_text = ""
         for x in range(width):
             source_color = pixels[x, y]
-            color_name = get_key_from_value(source_color, console_colors_rgb)
-            color_code = get_key_from_value(color_name, console_colors_codes)
+            color_name = get_key_from_value(source_color, CONSOLE_COLORS_RGB)
+            color_code = get_key_from_value(color_name, CONSOLE_COLORS_CODES)
             output_text += f"\033[{RESET};{color_code}m{text_long_enough[text_counter]}\033[0m"
 
             text_counter += 1
@@ -134,7 +134,7 @@ def print_text_from_image(image:Image, text:str) -> None:
         print(line) # Artikel
         time.sleep(DELAY_LINE)
 
-def get_image_category_from_text(description:str, headline:str, keywords_dict:dict) -> str:
+def get_category_from_text(description:str, headline:str, keywords_dict:dict) -> str:
     image_category = None
 
     for key, keyword_list in keywords_dict.items():
@@ -146,39 +146,49 @@ def get_image_category_from_text(description:str, headline:str, keywords_dict:di
 
     return image_category
 
-def main():
-    image_file = None
-    while not image_file:
+def print_heading(text:str) -> None:
+    print(f"\033[{BOLD};{YELLOW}m{text}\033[0m")
 
+def print_description(text:str) -> None:
+    print(f"\033[{RESET};{YELLOW}m{text}\033[0m")
+
+def get_image_from_category(category:str, satire:bool=False) -> Image:
+    image_file = NEWS_IMAGES[category][int(satire)]
+    image = Image.open("assets/" + image_file)
+    resized_image = get_resized_image_abs(image, terminal_width)
+    recolored_image = get_recolored_image(resized_image, CONSOLE_COLORS)
+
+    return recolored_image
+
+def main():
+    image_category = None
+    while not image_category:
         news_articles = get_articles(TAGESSCHAU)
         for news_article in news_articles:
+
             headline = news_article["title"]
             description = news_article["description"]
             text = news_article["text"]
 
-            image_category = get_image_category_from_text(description, headline, news_keywords)
+            image_category = get_category_from_text(description, headline, NEWS_KEYWORDS)
             if not image_category:
                 continue
-            image_file = news_images[image_category][NORMAL_IMAGE]
 
-            image = Image.open("assets/" + image_file)
-            resized_image = get_resized_image_abs(image, terminal_width) # 300
-            recolored_image = get_recolored_image(resized_image, console_colors)
+            article_image = get_image_from_category(image_category)
+
             # recolored_image.save("Homer_console.jpg")
 
-            print(f"\033[{BOLD};{YELLOW}m{headline}\033[0m") # Überschrift
+            print_heading(headline)
             time.sleep(DELAY)
-            print(f"\033[{RESET};{YELLOW}m{description}\033[0m") # Beschreibung
+            print_description(description)
             time.sleep(DELAY_LONG)
-            print_text_from_image(recolored_image, 100*text)
-            image_category = get_image_category_from_text(description, headline, news_keywords)
-            image_file = news_images[image_category][SATIRE_IMAGE]
-            image = Image.open("assets/" + image_file)
-            resized_image = get_resized_image_abs(image, terminal_width)
-            recolored_image = get_recolored_image(resized_image, console_colors)
+            print_text_from_image(article_image, 100*text)
+
+            satire_image = get_image_from_category(image_category, satire=True)
+
             time.sleep(DELAY)
             print("...")
-            print_text_from_image(recolored_image, 100*text)
+            print_text_from_image(satire_image, 100*text)
             time.sleep(DELAY)
             print("...")
             time.sleep(DELAY)
@@ -187,7 +197,7 @@ def main():
             print("...")
             time.sleep(DELAY)
 
-            image_file = None
+            image_category = None
 
 if __name__ == "__main__":
     main()
