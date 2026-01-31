@@ -14,7 +14,7 @@ NEWS_IMAGES = {
     "Merz": ["merz.jpg", "burns2.jpg"],
     "Deutschland": ["merkel.webp", "merkel-hand.jpeg"],
     "USA": ["trump3.webp", "Homer.jpg"],
-    "AfD": ["afd.jpg", "darth.jpg"],
+    "AfD": ["afd.jpg", "darth2.jpg"],
     "Weidel": ["Aliceweidel.webp", "Aliceweidel.webp"], # 2. Bild suchen
     "CSU": ["maggus.jpg", "maggus-essen2.jpg"]
 }
