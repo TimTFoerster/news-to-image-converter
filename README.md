@@ -11,6 +11,9 @@ Von der scheinbaren Stabilität öffentlicher Figuren zur offensichtlichen Labil
 
 ## Funktionsweise
 Das Programm lädt über einen RSS Feed aktuelle Nachrichten von tagesschau.de und erstellt aus vorher ausgesuchten Bildern und dem Nachrichtentext ein zum Artikel passendes Bild in der Konsole von VS Code. Auf die gleiche Art wird dann ein zweites Bild dargestellt, diesmal in der Satire-Version.
+In `main.py` befinden sich das Hauptprogramm.
+In `colors.py` finden sich Konstanten und Dictionaries, die die Farben festlegen. In der Konsole können nur acht Farben dargestellt werden, deswegen werden die Bilder auf diese Farben reduziert.
+In `image_selection.py` befinden sich Dictionaries mit den Schlüsselwörten, die entscheiden welches Bild für einen Artikel verwendet wird, sowie die Dateinamen der Bilder.
 
 ## Ausführung
 
@@ -19,7 +22,7 @@ Das Programm lädt über einen RSS Feed aktuelle Nachrichten von tagesschau.de u
 3) `uv run main.py` im Terminal ausführen
 4) Programm läuft in Endlosschleife. Abbruch mit Strg+C oder Konsole schließen
 
-Hinweis: Um die Bilder besser darzustellen, in den Einstellungen "terminal font size" suchen und Schirftgröße auf 10 oder 8 stellen (Standard ist 12)
+Hinweis: Um die Bilder besser darzustellen, in den Einstellungen "terminal font size" suchen und Schriftgröße auf 8 oder 6 stellen (Standard ist 12)
 
 # International
 

@@ -78,7 +78,7 @@ def get_resized_image_rel(img:Image, factor:float) -> Image:
 def get_resized_image_abs(img:Image, new_width:int) -> Image:
     width, height = img.size
     factor = new_width / width
-    new_height = int(height * factor / 2)
+    new_height = int(height * factor / 2.25)
     return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
 def get_recolored_image(img:Image, color_palette:list[tuple[int]]) -> Image:
