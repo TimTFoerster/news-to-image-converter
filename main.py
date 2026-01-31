@@ -7,8 +7,8 @@ from colors import *
 from image_selection import *
 
 # Constants
-DELAY = 0.5
-DELAY_LONG = 1.5
+DELAY = 1
+DELAY_LONG = 2
 DELAY_LINE = 0.05
 
 NORMAL_IMAGE = 0
